@@ -1,11 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map/src/core/bounds.dart';
+import 'package:flutter_map/src/layer/marker_info_window.dart';
 import 'package:flutter_map/src/map/map.dart';
 import 'package:latlong/latlong.dart';
 
 class MarkerLayerOptions extends LayerOptions {
   final List<Marker> markers;
+
   MarkerLayerOptions({this.markers = const [], rebuild})
       : super(rebuild: rebuild);
 }
@@ -77,14 +79,19 @@ class Marker {
   final double width;
   final double height;
   final Anchor anchor;
+  final String info;
+  final VoidCallback onTapInfoWindow;
 
   Marker({
     this.point,
     this.builder,
     this.width = 30.0,
     this.height = 30.0,
-    AnchorPos anchorPos,
-  }) : anchor = Anchor.forPos(anchorPos, width, height);
+    this.info,
+    this.onTapInfoWindow,
+    AnchorPos anchor,
+    Anchor anchorOverride,
+  }) : anchor = anchorOverride ?? Anchor.forPos(anchor, width, height);
 }
 
 class MarkerLayer extends StatelessWidget {
@@ -131,7 +138,14 @@ class MarkerLayer extends StatelessWidget {
               height: markerOpt.height,
               left: pixelPosX,
               top: pixelPosY,
-              child: markerOpt.builder(context),
+              child: markerOpt.info != null
+                  ? new MarkerInfoWindow(
+                      padding: const EdgeInsets.all(8.0),
+                      message: markerOpt.info,
+                      child: markerOpt.builder(context),
+                      onTapInfoWindow: markerOpt.onTapInfoWindow,
+                    )
+                  : markerOpt.builder(context),
             ),
           );
         }
